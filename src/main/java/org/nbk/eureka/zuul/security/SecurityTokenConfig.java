@@ -1,16 +1,31 @@
 package org.nbk.eureka.zuul.security;
 
+import javax.servlet.http.HttpServletResponse;
+
+import org.nbk.eureka.zuul.security.model.JwtConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @EnableWebSecurity
 public class SecurityTokenConfig extends WebSecurityConfigurerAdapter {
 
-	@Override
-	protected void configure(HttpSecurity http) throws Exception {
-		// TODO Auto-generated method stub
-		super.configure(http);
-	}
+    @Autowired
+    private JwtConfig jwtConfig;
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+	http.csrf().disable().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+		.exceptionHandling()
+		.authenticationEntryPoint((req, rsp, e) -> rsp.sendError(HttpServletResponse.SC_UNAUTHORIZED)).and()
+		.addFilterAfter(new JwtTokenAuthenticationFilter(jwtConfig), UsernamePasswordAuthenticationFilter.class)
+		.authorizeRequests().antMatchers(HttpMethod.POST, jwtConfig.getUri()).permitAll()
+		.antMatchers("/api/v1/movies-catalog-api" + "/admin").hasRole("ADMIN")
+		.anyRequest().authenticated();
+    }
 
 }

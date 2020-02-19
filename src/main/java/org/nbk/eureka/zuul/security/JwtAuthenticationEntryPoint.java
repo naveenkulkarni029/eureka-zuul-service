@@ -13,11 +13,20 @@ import org.springframework.stereotype.Component;
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-	@Override
-	public void commence(HttpServletRequest request, HttpServletResponse response,
-			AuthenticationException authException) throws IOException, ServletException {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void commence(HttpServletRequest request, HttpServletResponse response,
+	    AuthenticationException e) throws IOException, ServletException {
+
+	response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+
+	// How to customize the retured message?
+	// Link: https://stackoverflow.com/a/40791087
+	String json = String.format("{\"message\": \"%s\"}", e.getMessage());
+	response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+	response.setContentType("application/json");
+	response.setCharacterEncoding("UTF-8");
+	response.getWriter().write(json);
+
+    }
 
 }
